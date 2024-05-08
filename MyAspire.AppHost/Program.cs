@@ -1,6 +1,10 @@
+
+using MyAspire.Aspire.Hosting;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var redis = builder.AddRedis("redis", 5379)
+    .WithHealthCheck()
     .WithImageTag("latest")
     .WithVolume("redis_data", "/data", false)
     .WithOtlpExporter();
@@ -11,7 +15,9 @@ var postgreSql = builder.AddPostgres("postgres")//, port: 4432)
     .WithImageTag("latest")
     .WithImage("postgres")
     .WithVolume("postgres_data", "/var/lib/postgresql/data")
-    .WithPgAdmin();
+    .WithHealthCheck()
+    .WithPgAdmin()
+    ;
 //    .WithDataVolume();
 //    .WithOtlpExporter()
 //    .WithContainerRunArgs();
@@ -27,9 +33,12 @@ var db = postgreSql.AddDatabase("fx-rates", "fx-rates");
 //    .WithHttpEndpoint(8080, 8080, "admin");
 
 var apiService = builder.AddProject<Projects.MyAspire_ApiService>("apiservice")
-    .WithReference(db);
+    .WithHealthCheck()
+    .WithReference(db)
+    .WaitFor(db);
 
 builder.AddProject<Projects.MyAspire_Web>("webfrontend")
-    .WithReference(apiService);
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 builder.Build().Run();
