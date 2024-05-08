@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/LLM/LocalLLM/Model/wizardLM-7B.ggmlv3.q4_1.bin
