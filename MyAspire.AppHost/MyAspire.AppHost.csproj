@@ -1,36 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<IsAspireHost>true</IsAspireHost>
-		<UserSecretsId>4c3e244b-cfa0-4f00-80c7-1196789c28b6</UserSecretsId>
-	</PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>f3588db9-1833-49e3-83c9-d60e81f73bd9</UserSecretsId>
+	  
+  </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\MyAspire.ApiService\MyAspire.ApiService.csproj" />
-		<ProjectReference Include="..\MyAspire.Web\MyAspire.Web.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyAspire.ApiService\MyAspire.ApiService.csproj" />
+    <ProjectReference Include="..\MyAspire.Web\MyAspire.Web.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Aspire.Hosting.AppHost" />
-		<PackageReference Include="Aspire.Hosting.MongoDB" />
-		<PackageReference Include="Aspire.Hosting.NodeJs" />
-		<PackageReference Include="Aspire.Hosting.Orleans" />
-		<PackageReference Include="Aspire.Hosting.PostgreSQL" />
-		<PackageReference Include="Aspire.Hosting.RabbitMQ" />
-		<PackageReference Include="Aspire.Hosting.Redis" />
-
-
-		<PackageReference Include="Aspire.Hosting" />
-
-		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
-		<PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" />
-		<PackageReference Include="AspNetCore.HealthChecks.Redis" />
-		<PackageReference Include="AspNetCore.HealthChecks.SqlServer" />
-		<PackageReference Include="AspNetCore.HealthChecks.Uris" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+  </ItemGroup>
 
 </Project>

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -37,8 +39,15 @@ public static class Extensions
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
+            logging.AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+                opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+            });
         });
+        
 
+       
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
@@ -48,16 +57,12 @@ public static class Extensions
             })
             .WithTracing(tracing =>
             {
-                if (builder.Environment.IsDevelopment())
-                {
-                    // We want to view all traces in development
-                    tracing.SetSampler(new AlwaysOnSampler());
-                }
-
                 tracing.AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
+
+                
             });
 
         builder.AddOpenTelemetryExporters();
@@ -71,14 +76,27 @@ public static class Extensions
 
         if (useOtlpExporter)
         {
-            builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
-            builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
-            builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOtlpExporter());
+            builder.Services.AddOpenTelemetry();
+            //REMOVE THIS FROM OPENTELEMETRY AND INCLUDE IT IN THE WITHMETRICS
+            // .UseOtlpExporter(OtlpExportProtocol.HttpProtobuf, new Uri("http://localhost:5341/ingest/otlp/v1/traces"));
         }
 
         // Uncomment the following lines to enable the Prometheus exporter (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
-        // builder.Services.AddOpenTelemetry()
-        //    .WithMetrics(metrics => metrics.AddPrometheusExporter());
+        builder.Services
+            .AddOpenTelemetry()            
+           .WithMetrics(metrics => {
+               metrics.AddPrometheusExporter(options => options.DisableTotalNameSuffixForCounters = true);
+               metrics.AddConsoleExporter();
+           })
+           .WithTracing(tracing =>
+           {
+               tracing.AddConsoleExporter();
+               tracing.AddOtlpExporter(opt =>
+               {                   
+                   opt.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/traces");
+                   opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+               });
+           });
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
@@ -102,7 +120,7 @@ public static class Extensions
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
         // Uncomment the following line to enable the Prometheus endpoint (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
-        // app.MapPrometheusScrapingEndpoint();
+         app.MapPrometheusScrapingEndpoint();
 
         // Adding health checks endpoints to applications in non-development environments has security implications.
         // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.

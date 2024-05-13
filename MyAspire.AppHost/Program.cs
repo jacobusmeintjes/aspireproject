@@ -1,44 +1,26 @@
-
-using MyAspire.Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
-var redis = builder.AddRedis("redis", 5379)
-    .WithHealthCheck()
-    .WithImageTag("latest")
-    .WithVolume("redis_data", "/data", false)
-    .WithOtlpExporter();
+var grafana = builder.AddContainer("grafana", "grafana/grafana")
+                     .WithBindMount("../grafana/config", "/etc/grafana", isReadOnly: true)
+                     .WithBindMount("../grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+                     .WithHttpEndpoint(targetPort: 3000, name: "http");
 
-var postgreSql = builder.AddPostgres("postgres")//, port: 4432)
-                                                //.WithEnvironment("POSTGRES_PASSWORD", "password")
-                                                //.WithEnvironment("POSTGRES_USER", "postgres")
-    .WithImageTag("latest")
-    .WithImage("postgres")
-    .WithVolume("postgres_data", "/var/lib/postgresql/data")
-    .WithHealthCheck()
-    .WithPgAdmin()
-    ;
-//    .WithDataVolume();
-//    .WithOtlpExporter()
-//    .WithContainerRunArgs();
+builder.AddContainer("prometheus", "prom/prometheus")
+       .WithBindMount("../prometheus", "/etc/prometheus", isReadOnly: true)
+       .WithBindMount("../prometheus_data", "/prometheus")
+       .WithHttpEndpoint(/* This port is fixed as it's referenced from the Grafana config */ port: 9090, targetPort: 9090);
 
-var db = postgreSql.AddDatabase("fx-rates", "fx-rates");
+builder.AddContainer("seq", "datalust/seq")
+    .WithEnvironment("ACCEPT_EULA", "Y")
+    .WithBindMount("../seq", "/data")
+    .WithHttpEndpoint(5341, 80);
 
-//var solace = builder.AddContainer("pubSubStandardSingleNode", "solace/solace-pubsub-standard", "latest")
-//    .WithVolume("storage-group", "/var/lib/solace")
-//    .WithContainerRunArgs("--shm-size", "1g", "--ulimit", "core=-1", "--ulimit", "nofile=2448:6592")
-//    .WithEnvironment("system_scaling_maxconnectioncount", "100")
-//    .WithEnvironment("username_admin_password", "admin")
-//    .WithEnvironment("username_admin_globalaccesslevel", "admin")
-//    .WithHttpEndpoint(8080, 8080, "admin");
 
-var apiService = builder.AddProject<Projects.MyAspire_ApiService>("apiservice")
-    .WithHealthCheck()
-    .WithReference(db)
-    .WaitFor(db);
+var apiService = builder.AddProject<Projects.MyAspire_ApiService>("apiservice");
+
 
 builder.AddProject<Projects.MyAspire_Web>("webfrontend")
-    .WithReference(apiService)
-    .WaitFor(apiService);
+    .WithExternalHttpEndpoints()
+    .WithReference(apiService);
 
 builder.Build().Run();

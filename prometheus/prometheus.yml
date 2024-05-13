@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 1s # makes for a good demo
+
+scrape_configs:
+  - job_name: 'apiservice'
+    static_configs:
+      - targets: ['host.docker.internal:5048'] # hard-coded port matches launchSettings.json
+  - job_name: 'webfrontend'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets: ['host.docker.internal:7148'] # hard-coded port matches launchSettings.json
