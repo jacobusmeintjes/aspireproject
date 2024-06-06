@@ -46,6 +46,15 @@ builder.AddContainer("seq", "datalust/seq")
     .WithBindMount("../seq", "/data")
     .WithHttpEndpoint(5341, 80);
 
+//var solace = builder.AddContainer("pubSubStandardSingleNode", "solace/solace-pubsub-standard", "latest")
+//    .WithVolume("storage-group", "/var/lib/solace")
+//    .WithContainerRunArgs("--shm-size", "1g", "--ulimit", "core=-1", "--ulimit", "nofile=2448:6592")
+//    .WithEnvironment("system_scaling_maxconnectioncount", "100")
+//    .WithEnvironment("username_admin_password", "admin")
+//    .WithEnvironment("username_admin_globalaccesslevel", "admin")
+//    .WithHttpEndpoint(8080, 8080, "admin");
+
+
 
 var apiService = builder.AddProject<Projects.MyAspire_ApiService>("apiservice");
 
