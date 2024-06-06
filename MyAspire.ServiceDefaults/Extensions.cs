@@ -93,8 +93,8 @@ public static class Extensions
                tracing.AddConsoleExporter();
                tracing.AddOtlpExporter(opt =>
                {                   
-                   opt.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/traces");
-                   opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+                   opt.Endpoint = new Uri("http://localhost:14317");
+                   opt.Protocol = OtlpExportProtocol.Grpc;
                });
            });
 
